@@ -21,12 +21,11 @@ require_once 'phing/Task.php';
 require_once 'phing/system/io/PhingFile.php';
 
 /**
- * A phing task for adding one header to a set of files.
+ * A phing task for adding a heading to a set of files.
  * 
  * Parameters:
  *     - file: The location of the header file to load.
- *     - eol: Specifies what the end of line character are for use by 
- *       the fixlastline attribute.
+ *     - eol: Specifies what the end of line character.
  *     - failonerror: Stop process if one error occured.
  *     - preservelastmodified: Give the copied files the same 
  *       last modified time as the original source files.

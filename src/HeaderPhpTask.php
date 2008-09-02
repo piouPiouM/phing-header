@@ -23,7 +23,7 @@
 require_once 'phing/tasks/ext/HeaderTask.php';
 
 /**
- * A phing task for adding one header comment block to a set of php files.
+ * A phing task for adding a heading comment block to a set of php files.
  * 
  * Warning: line contains the first php tag (i.e. <code><?php</code>) is deleted.
  * 
@@ -45,7 +45,7 @@ require_once 'phing/tasks/ext/HeaderTask.php';
  * 
  * @author  Mehdi Kabab <pioupioum|at|gmail|dot|com>
  * @version 1.0
- * @package phing.tasks.pioupioum
+ * @package phing.tasks.ext
  * @todo    Manage encoding
  */
 class HeaderPhpTask extends HeaderTask
