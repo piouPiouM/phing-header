@@ -85,7 +85,7 @@ class HeaderTask extends Task
      * @var    array
      * @access protected
      **/
-    protected $_fileSets = array();
+    protected $_filesets = array();
 
     /**
      * The file to load.
@@ -235,9 +235,9 @@ class HeaderTask extends Task
      */
     public function createFileSet()
     {
-        $count = array_push($this->_fileSets, new FileSet());
+        $count = array_push($this->_filesets, new FileSet());
         
-        return $this->_fileSets[--$count];
+        return $this->_filesets[--$count];
     }
 
     /**
@@ -265,15 +265,21 @@ class HeaderTask extends Task
      **/
     protected function _proccess()
     {
+        $header  = $this->_loadResource();
+        
+        if (false === $header)
+        {
+            throw new BuildException('Couldn\'t load the header file!');
+        }
+        
         $this->log(
             'Load header: ' . $this->_resource . ' (' . $this->_resource->length() . ' Bytes)',
             $this->getVerbose()
         );
         
-        $header  = $this->_loadResource();
         $project = $this->getProject();
         
-        foreach ($this->_fileSets as $fileset)
+        foreach ($this->_filesets as $fileset)
         {
             $directoryset = $fileset->getDirectoryScanner($project);
             $fromDir      = $fileset->getDir($project);
@@ -295,15 +301,13 @@ class HeaderTask extends Task
                 }
                 catch (IOException $e)
                 {
-                    $msg = 'Cannot update file!';
-                    
                     if ($this->_failOnError)
                     {
                         throw new BuildException('Cannot update file! ' . $e->getMessage() , $e);
                     }
                     else
                     {
-                        $this->log($msg, $this->getLocation());
+                        $this->log('Cannot update file!', $this->getLocation());
                     }
                 }
                 
@@ -319,7 +323,7 @@ class HeaderTask extends Task
      * Load the header file.
      * 
      * @param  void
-     * @return string The resource's content
+     * @return string The resource's content or false on failure.
      * @access protected
      **/
     protected function _loadResource()
@@ -415,7 +419,7 @@ class HeaderTask extends Task
             throw new BuildException('You must specify a file to load.', $this->getLocation());
         }
         
-        if (0 === count($this->_fileSets))
+        if (0 === count($this->_filesets))
         {
             throw new BuildException('You must specify a fileset.', $this->getLocation());
         }
