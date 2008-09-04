@@ -163,12 +163,12 @@ class HeaderTask extends Task
      */
     public function setEol($eol)
     {
-        $eol = strtoupper((string) $eol);
+        $eol = strtolower((string) $eol);
         
         switch ($eol)
         {
-            case 'CR':
-            case 'MAC':
+            case 'cr':
+            case 'mac':
                 $this->_eol = "\r";
                 break;
             
