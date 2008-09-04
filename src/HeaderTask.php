@@ -134,8 +134,10 @@ class HeaderTask extends Task
     */
     public function setPreserveLastModified($preserve)
     {
-        $this->log('Preserve last modified time : true', $this->getVerbose());
-        $this->_preserveLastModified = (boolean) $preserve;
+        $preserve = (boolean) $preserve;
+        $this->_preserveLastModified = $preserve;
+        
+        $this->log(sprintf('Preserve last modified time: %s', ($preserve) ? 'yes' : 'no'), $this->getVerbose());
     }
 
     /**
@@ -264,7 +266,7 @@ class HeaderTask extends Task
     protected function _proccess()
     {
         $this->log(
-            'Loading header: ' . $this->_resource . ' (' . $this->_resource->length() . ' Bytes)',
+            'Load header: ' . $this->_resource . ' (' . $this->_resource->length() . ' Bytes)',
             $this->getVerbose()
         );
         
@@ -429,7 +431,7 @@ class HeaderTask extends Task
             {
                 if (0 ===  $this->_resource->length())
                 {
-                    $this->log('The file ' . $this->_resource . ' is empty !', $this->getVerbose());
+                    $this->log('The file ' . $this->_resource . ' is empty!', $this->getVerbose());
                 }
             }
             catch (IOException $e)
@@ -439,7 +441,7 @@ class HeaderTask extends Task
         }
         else
         {
-            throw new BuildException($this->_resource . ' doesn\'t exist', $this->getLocation());
+            throw new BuildException($this->_resource . ' doesn\'t exist!', $this->getLocation());
         }
     }
 
