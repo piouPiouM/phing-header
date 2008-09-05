@@ -307,27 +307,7 @@ class HeaderTask extends Task
         
         if (null !== $this->_destFile)
         {
-            try
-            {
-                $this->log('Reading ' . $this->_destFile, $this->getVerbose());
-                $buffer = $this->_readFile($this->_destFile);
-                
-                $buffer = $this->_concat($header, $buffer);
-                
-                $this->log('Writing ' . $this->_destFile, $this->getVerbose());
-                $this->_writeFile($this->_destFile, $buffer);
-            }
-            catch (IOException $e)
-            {
-                if ($this->_failOnError)
-                {
-                    throw new BuildException('Cannot update file! ' . $e->getMessage() , $e);
-                }
-                else
-                {
-                    $this->log('Cannot update file!', $this->getLocation());
-                }
-            }
+            $this->_addHeader($header, $this->_destFile);
         }
         else
         {
@@ -339,31 +319,10 @@ class HeaderTask extends Task
                 
                 foreach ($srcFiles as $srcFile)
                 {
-                    $file = new PhingFile($fromDir . DIRECTORY_SEPARATOR . $srcFile);
+                    $destFile = new PhingFile($fromDir . DIRECTORY_SEPARATOR . $srcFile);
+                    $this->_addHeader($header, $destFile);
                     
-                    try
-                    {
-                        $this->log('Reading ' . $file, $this->getVerbose());
-                        $buffer = $this->_readFile($file);
-                        
-                        $buffer = $this->_concat($header, $buffer);
-                        
-                        $this->log('Writing ' . $file, $this->getVerbose());
-                        $this->_writeFile($file, $buffer);
-                    }
-                    catch (IOException $e)
-                    {
-                        if ($this->_failOnError)
-                        {
-                            throw new BuildException('Cannot update file! ' . $e->getMessage() , $e);
-                        }
-                        else
-                        {
-                            $this->log('Cannot update file!', $this->getLocation());
-                        }
-                    }
-                    
-                    unset($file);
+                    unset($destFile);
                 }
             }
         }
@@ -422,6 +381,40 @@ class HeaderTask extends Task
         if ($this->_preserveLastModified)
         {
             $file->setLastModified($lastModified);
+        }
+    }
+
+    /**
+     * Adding the header to a file.
+     * 
+     * @param  string    $header
+     * @param  PhingFile $destFile
+     * @return void
+     * @throws BuildException
+     * @access protected
+     **/
+    protected function _addHeader($header, PhingFile $destFile)
+    {
+        try
+        {
+            $this->log('Reading ' . $destFile, $this->getVerbose());
+            $buffer = $this->_readFile($destFile);
+            
+            $buffer = $this->_concat($header, $buffer);
+            
+            $this->log('Writing ' . $destFile, $this->getVerbose());
+            $this->_writeFile($destFile, $buffer);
+        }
+        catch (IOException $e)
+        {
+            if ($this->_failOnError)
+            {
+                throw new BuildException('Cannot update file! ' . $e->getMessage());
+            }
+            else
+            {
+                $this->log('Cannot update file!', $this->getLocation());
+            }
         }
     }
 
