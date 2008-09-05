@@ -88,6 +88,14 @@ class HeaderTask extends Task
     protected $_filesets = array();
 
     /**
+     * The destination file.
+     *
+     * @var    PhingFile
+     * @access protected
+     **/
+    protected $_destFile = null;
+
+    /**
      * The file to load.
      * 
      * @var    PhingFile
@@ -108,6 +116,24 @@ class HeaderTask extends Task
             $file = new PhingFile($file);
         
         $this->_resource = $file;
+    }
+
+    /**
+     * Set the toFile attribute.
+     * 
+     * You can use the toFile attribute if you do not use any FileSet. Typically,
+     * for adding a header to a single file.
+     *
+     * @param  string|PhingFile $file The destination file. Either a string or an PhingFile object
+     * @return void
+     * @access public
+     */
+    public function setToFile(PhingFile $file)
+    {
+        if (is_string($file))
+            $file = new PhingFile($file);
+        
+        $this->_destFile = $file;
     }
 
     /**
@@ -279,41 +305,67 @@ class HeaderTask extends Task
         
         $project = $this->getProject();
         
-        foreach ($this->_filesets as $fileset)
+        if (null !== $this->_destFile)
         {
-            $directoryset = $fileset->getDirectoryScanner($project);
-            $fromDir      = $fileset->getDir($project);
-            $srcFiles     = $directoryset->getIncludedFiles();
-            
-            foreach ($srcFiles as $srcFile)
+            try
             {
-                $file = new PhingFile($fromDir . DIRECTORY_SEPARATOR . $srcFile);
+                $this->log('Reading ' . $this->_destFile, $this->getVerbose());
+                $buffer = $this->_readFile($this->_destFile);
                 
-                try
-                {
-                    $this->log('Reading ' . $file, $this->getVerbose());
-                    $buffer = $this->_readFile($file);
+                $buffer = $this->_concat($header, $buffer);
                 
-                    $buffer = $this->_concat($header, $buffer);
-                
-                    $this->log('Writing ' . $file, $this->getVerbose());
-                    $this->_writeFile($file, $buffer);
-                }
-                catch (IOException $e)
-                {
-                    if ($this->_failOnError)
-                    {
-                        throw new BuildException('Cannot update file! ' . $e->getMessage() , $e);
-                    }
-                    else
-                    {
-                        $this->log('Cannot update file!', $this->getLocation());
-                    }
-                }
-                
-                unset($file);
+                $this->log('Writing ' . $this->_destFile, $this->getVerbose());
+                $this->_writeFile($this->_destFile, $buffer);
             }
-            
+            catch (IOException $e)
+            {
+                if ($this->_failOnError)
+                {
+                    throw new BuildException('Cannot update file! ' . $e->getMessage() , $e);
+                }
+                else
+                {
+                    $this->log('Cannot update file!', $this->getLocation());
+                }
+            }
+        }
+        else
+        {
+            foreach ($this->_filesets as $fileset)
+            {
+                $directoryset = $fileset->getDirectoryScanner($project);
+                $fromDir      = $fileset->getDir($project);
+                $srcFiles     = $directoryset->getIncludedFiles();
+                
+                foreach ($srcFiles as $srcFile)
+                {
+                    $file = new PhingFile($fromDir . DIRECTORY_SEPARATOR . $srcFile);
+                    
+                    try
+                    {
+                        $this->log('Reading ' . $file, $this->getVerbose());
+                        $buffer = $this->_readFile($file);
+                        
+                        $buffer = $this->_concat($header, $buffer);
+                        
+                        $this->log('Writing ' . $file, $this->getVerbose());
+                        $this->_writeFile($file, $buffer);
+                    }
+                    catch (IOException $e)
+                    {
+                        if ($this->_failOnError)
+                        {
+                            throw new BuildException('Cannot update file! ' . $e->getMessage() , $e);
+                        }
+                        else
+                        {
+                            $this->log('Cannot update file!', $this->getLocation());
+                        }
+                    }
+                    
+                    unset($file);
+                }
+            }
         }
         
         return true;
@@ -416,19 +468,24 @@ class HeaderTask extends Task
     {
         if (null === $this->_resource)
         {
-            throw new BuildException('You must specify a file to load.', $this->getLocation());
+            throw new BuildException('You must specify a file to load.');
         }
         
-        if (0 === count($this->_filesets))
+        if (null === $this->_destFile && empty($this->_filesets))
         {
-            throw new BuildException('You must specify a fileset.', $this->getLocation());
+            throw new BuildException('Specify at least one source - a file or a fileset.');
         }
         
+        if (null !== $this->_destFile && !empty($this->_filesets))
+        {
+            throw new BuildException('Only one of destination file and fileset may be set.');
+        }
+
         if ($this->_resource->exists())
         {
             if ($this->_resource->isDirectory())
             {
-                throw new BuildException('Cannot load a directory as a file.', $this->getLocation());
+                throw new BuildException('Cannot load a directory as a file.');
             }
             
             try
@@ -440,12 +497,12 @@ class HeaderTask extends Task
             }
             catch (IOException $e)
             {
-                throw new BuildException($e->getMessage(), $this->getLocation());
+                throw new BuildException($e->getMessage(), $e->getLocation());
             }
         }
         else
         {
-            throw new BuildException($this->_resource . ' doesn\'t exist!', $this->getLocation());
+            throw new BuildException($this->_resource . ' does not exist!');
         }
     }
 
