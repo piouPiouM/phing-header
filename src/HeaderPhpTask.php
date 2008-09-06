@@ -46,7 +46,6 @@ require_once 'phing/tasks/ext/HeaderTask.php';
  * @author  Mehdi Kabab <pioupioum|at|gmail|dot|com>
  * @version 1.0
  * @package phing.tasks.ext
- * @todo    Manage encoding
  */
 class HeaderPhpTask extends HeaderTask
 {
@@ -66,7 +65,7 @@ class HeaderPhpTask extends HeaderTask
         
         while (list($k, $v) = each($content))
         {
-            $pos = strpos($v, '<?php');
+            $pos = mb_strpos($v, '<?php', $this->getToEncoding());
             
             if (false !== $pos)
             {
@@ -94,7 +93,9 @@ class HeaderPhpTask extends HeaderTask
     **/
     protected function _concat($header, $content)
     {
-        return '<?php' . $this->getEol() . $header . $this->getEol() . $content;
+        $phpTag  = mb_convert_encoding('<?php' . $this->getEol(), $this->getToEncoding(), 'UTF-8');
+        
+        return $phpTag . parent::_concat($header, $content);
     }
 
 }

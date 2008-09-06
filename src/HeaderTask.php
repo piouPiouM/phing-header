@@ -43,7 +43,6 @@ require_once 'phing/system/io/PhingFile.php';
  * @author  Mehdi Kabab <pioupioum|at|gmail|dot|com>
  * @version 1.0
  * @package phing.tasks.ext
- * @todo    Manage encoding
  */
 class HeaderTask extends Task
 {
@@ -70,6 +69,20 @@ class HeaderTask extends Task
      * @access protected
      **/
     protected $_verbosity = Project::MSG_VERBOSE;
+
+    /**
+     * Encoding of header file.
+     *
+     * @var string
+     **/
+    protected $_encoding = 'UTF-8';
+
+    /**
+     * Encoding of input file(s).
+     *
+     * @var string
+     **/
+    protected $_destEncoding = 'UTF-8';
 
     /**
      * What to do when it goes pear-shaped.
@@ -134,6 +147,54 @@ class HeaderTask extends Task
             $file = new PhingFile($file);
         
         $this->_destFile = $file;
+    }
+
+    /**
+     * Specifies the encoding for the header file.
+     * 
+     * @param  string $encode The name of the charset used to encode
+     * @return void
+     * @access public
+     **/
+    public function setEncoding($encoding)
+    {
+        $this->_encoding = (string) $encoding;
+    }
+
+    /**
+     * Get the encoding of the header file.
+     * 
+     * @param  void
+     * @return string
+     * @access public
+     **/
+    public function getEncoding()
+    {
+        return $this->_encoding;
+    }
+
+    /**
+     * Specifies the encoding for the input file(s).
+     * 
+     * @param  string $encode The name of the charset used to encode
+     * @return void
+     * @access public
+     **/
+    public function setToEncoding($encoding)
+    {
+        $this->_destEncoding = (string) $encoding;
+    }
+
+    /**
+     * Get the encoding of the input file(s).
+     * 
+     * @param  void
+     * @return string
+     * @access public
+     **/
+    public function getToEncoding()
+    {
+        return $this->_destEncoding;
     }
 
     /**
@@ -445,6 +506,8 @@ class HeaderTask extends Task
                     break;
             }
         }
+        
+        $header = mb_convert_encoding($header, $this->_destEncoding, $this->_encoding);
         
         return $header . $this->getEol() . $content;
     }
